@@ -1,8 +1,8 @@
 # AULAF
 
-# 📦 AU Lost & Found Management System
+# AU Lost & Found Management System
 
-## 📌 Project Overview
+## Project Overview
 
 The **AU Lost & Found Management System** is a web-based application designed to help students and staff at Ahmedabad University report, search, and recover lost items efficiently. The system provides a centralized platform to manage lost and found items with proper tracking and verification.
 
