@@ -1,0 +1,232 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Item - AULAF</title>
+    <link rel="stylesheet" href="{% static 'items/in.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="login-body">
+
+    {% if form.errors %}
+    <div style="color:red; text-align:center; margin-top:10px;">
+        <strong>Form Errors:</strong> {{ form.errors }}
+    </div>
+    {% endif %}
+
+    <div class="login-card">
+
+        <h2 class="login-heading">Report Item</h2>
+        <p class="login-subheading">Add Lost or Found Item</p>
+
+        <form method="POST" enctype="multipart/form-data" class="login-form">
+            {% csrf_token %}
+
+            <div class="login-field">
+                <label>Item Name</label>
+                {{ form.item_name }}
+            </div>
+
+            <div class="login-field">
+                <label>Description</label>
+                {{ form.description }}
+            </div>
+
+            
+
+            <div class="login-field">
+                <label>Submission Type</label>
+                {{ form.submission_type }}
+            </div>
+
+            <div class="login-field" id="locationField" style="display:none;">
+                <label>Location</label>
+                {{ form.submitted_at }}
+            </div>
+
+            <!-- ✅ FIXED: Single input, two buttons control it -->
+            <div class="login-field">
+                <label>Item Image</label>
+
+                <!-- ONE input only — no duplicate name="image" -->
+                <input type="file" id="imageInput" name="image"
+                       accept="image/*" style="display:none"
+                       onchange="previewFile(this)">
+
+                <div class="upload-btn-row">
+                    <button type="button" class="upload-btn" onclick="chooseFile()">
+                        📁 Choose File
+                    </button>
+                    <button type="button" class="upload-btn" onclick="takePhoto()">
+                        📷 Take Photo
+                    </button>
+                </div>
+
+                <div id="imagePreview" class="upload-preview" style="display:none;">
+                    <img id="imagePreviewImg" src="" alt="Preview"
+                         style="max-width:100%; border-radius:8px; margin-top:8px;">
+                    <span id="imagePreviewName" class="upload-filename"></span>
+                </div>
+
+                {% if form.image.errors %}
+                    <span class="field-error">{{ form.image.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="login-btn">Submit Item</button>
+        </form>
+
+        <p class="register-login-link">
+            <a href="{% url 'home' %}">⬅ Back to Dashboard</a>
+        </p>
+
+    </div>
+
+    <script>
+        // ✅ Run immediately when page loads
+        var submissionType = document.querySelector("[name='submission_type']");
+        var locationField  = document.getElementById("locationField");
+
+        function toggleLocation() {
+            if (!submissionType || !locationField) return;
+            if (submissionType.value === "desk") {
+                locationField.style.display = "block";
+            } else {
+                locationField.style.display = "none";
+            }
+        }
+
+        // Run on page load
+        toggleLocation();
+
+        // Run on every change
+        if (submissionType) {
+            submissionType.addEventListener("change", toggleLocation);
+        }
+
+        // ✅ Camera + file functions below
+        function chooseFile() {
+            var input = document.getElementById("imageInput");
+            input.removeAttribute("capture");
+            input.click();
+        }
+
+        function takePhoto() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert("Camera not supported. Please use Choose File.");
+                return;
+            }
+            document.getElementById("cameraModal").style.display = "flex";
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    var video = document.getElementById("cameraVideo");
+                    video.srcObject = stream;
+                    video.play();
+                    window._cameraStream = stream;
+                })
+                .catch(function(err) {
+                    alert("Could not access camera: " + err.message);
+                    document.getElementById("cameraModal").style.display = "none";
+                });
+        }
+
+        function capturePhoto() {
+            var video  = document.getElementById("cameraVideo");
+            var canvas = document.getElementById("cameraCanvas");
+            canvas.width  = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext("2d").drawImage(video, 0, 0);
+
+            if (window._cameraStream) {
+                window._cameraStream.getTracks().forEach(function(t) { t.stop(); });
+            }
+
+            canvas.toBlob(function(blob) {
+                var timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+                var file = new File([blob], "camera_" + timestamp + ".jpg", { type: "image/jpeg" });
+                var dt   = new DataTransfer();
+                dt.items.add(file);
+                document.getElementById("imageInput").files = dt.files;
+
+                var previewImg  = document.getElementById("imagePreviewImg");
+                var previewName = document.getElementById("imagePreviewName");
+                var preview     = document.getElementById("imagePreview");
+                previewImg.src          = canvas.toDataURL("image/jpeg");
+                previewName.textContent = "camera_photo.jpg";
+                preview.style.display   = "flex";
+
+                document.getElementById("cameraModal").style.display = "none";
+            }, "image/jpeg");
+        }
+
+        function closeCamera() {
+            if (window._cameraStream) {
+                window._cameraStream.getTracks().forEach(function(t) { t.stop(); });
+            }
+            document.getElementById("cameraModal").style.display = "none";
+        }
+
+        function previewFile(input) {
+            var file = input.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById("imagePreviewImg").src     = e.target.result;
+                document.getElementById("imagePreviewName").textContent = file.name;
+                document.getElementById("imagePreview").style.display   = "flex";
+            };
+            reader.readAsDataURL(file);
+        }
+    </script>
+    <!-- ✅ Camera Modal -->
+    <div id="cameraModal" style="
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.92);
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: 16px;">
+
+        <video id="cameraVideo" style="
+            max-width: 90%;
+            max-height: 60vh;
+            border-radius: 12px;
+            background: #000;">
+        </video>
+
+        <canvas id="cameraCanvas" style="display:none;"></canvas>
+
+        <div style="display:flex; gap:16px;">
+            <button onclick="capturePhoto()" style="
+                padding: 12px 28px;
+                background: #7B1C1C;
+                color: white;
+                border: none;
+                border-radius: 10px;
+                font-size: 15px;
+                font-weight: 700;
+                cursor: pointer;">
+                📸 Capture
+            </button>
+            <button onclick="closeCamera()" style="
+                padding: 12px 28px;
+                background: #444;
+                color: white;
+                border: none;
+                border-radius: 10px;
+                font-size: 15px;
+                font-weight: 700;
+                cursor: pointer;">
+                ✕ Cancel
+            </button>
+        </div>
+    </div>
+
+</body>
+</html>
