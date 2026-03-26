@@ -1,0 +1,175 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Items - AULAF</title>
+    <link rel="stylesheet" href="{% static 'items/in.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="dashboard-body">
+
+    <!-- ===== TOP NAVBAR ===== -->
+    <nav class="dash-navbar">
+        <div class="dash-nav-left">
+            <div class="dash-nav-logo">
+                <img src="{% static 'items/au_logo.jpeg' %}" alt="AU" class="nav-icon"
+                     onerror="this.style.display='none'">
+            </div>
+            <span class="dash-nav-title">AULAF</span>
+        </div>
+
+        <div class="dash-nav-center">
+            <div class="dash-search-wrapper">
+                <span class="dash-search-icon">⌕</span>
+                <input type="text" id="searchBox"
+                       placeholder="Search My Items"
+                       class="dash-search-input"
+                       autocomplete="off">
+                <div id="searchDropdown" class="search-dropdown"></div>
+            </div>
+        </div>
+
+        <div class="dash-nav-right">
+            <a href="{% url 'add_item' %}" class="dash-report-btn">+ Report Items</a>
+        </div>
+    </nav>
+
+    <!-- ===== LAYOUT WRAPPER ===== -->
+    <div class="dash-layout">
+
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="dash-sidebar">
+            <div class="dash-avatar">
+                <div class="dash-avatar-circle">
+                    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="20" cy="15" r="7" fill="#aaa"/>
+                        <ellipse cx="20" cy="32" rx="12" ry="7" fill="#aaa"/>
+                    </svg>
+                </div>
+            </div>
+
+            <nav class="dash-sidebar-nav">
+                <a href="{% url 'home' %}"     class="dash-sidebar-link">Dashboard</a>
+                <a href="{% url 'add_item' %}" class="dash-sidebar-link">Report Item</a>
+                <a href="{% url 'my_items' %}" class="dash-sidebar-link active">My Items</a>
+            </nav>
+
+            <a href="{% url 'logout' %}" class="dash-logout-btn">Logout</a>
+        </aside>
+
+        <!-- ===== MAIN CONTENT ===== -->
+        <main class="dash-main">
+
+            <!-- ===== HEADER ===== -->
+            <div class="dash-recent-header" style="margin-bottom: 20px;">
+                <span>
+                    My Claimed Items
+                    (<span id="visibleCount">{{ items|length }}</span>)
+                </span>
+            </div>
+
+            <!-- ===== INFO NOTE ===== -->
+            <p style="font-family: 'Montserrat', Arial, sans-serif; font-size: 12px;
+                       color: #888; margin: -8px 0 16px 4px;">
+                Items where a claim was processed using your AU email
+                ({{ request.user.email }})
+            </p>
+
+            <!-- ===== ITEMS LIST ===== -->
+            <div id="itemsContainer" class="dash-items-list">
+
+                {% for item in items %}
+
+                <!-- Get the claim matching this user's email for this item -->
+                {% with claim=item.claims.all %}
+
+                <div class="dash-item-card"
+                     data-name="{{ item.item_name|lower }}"
+                     data-status="{{ item.status|lower|slugify }}"
+                     data-desc="{{ item.description|lower|default:'' }}">
+
+                    <div class="dash-item-left">
+
+                        <div class="dash-item-title-row">
+                            <span class="dash-item-name">{{ item.item_name }}</span>
+
+                            <!-- Status badge -->
+                            <span class="dash-badge dash-badge--{{ item.status|lower|slugify }}">
+                                {{ item.status }}
+                            </span>
+
+                            <!-- Location badge -->
+                            {% if item.submitted_at %}
+                                <span class="dash-badge dash-badge--category">
+                                    {{ item.get_submitted_at_display }}
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <p class="dash-item-desc">
+                            {{ item.description }}
+                        </p>
+
+                        <div class="dash-item-meta">
+                            {% if item.submitted_at %}
+                                <span class="dash-meta-chip">
+                                    📍 {{ item.get_submitted_at_display }}
+                                </span>
+                            {% endif %}
+                            <span class="dash-meta-chip">
+                                📅 {{ item.date_reported|date:"Y-m-d" }}
+                            </span>
+                            <span class="dash-meta-chip">
+                                👤 Reported by {{ item.reported_by.username }}
+                            </span>
+
+                            <!-- Claim date from matching claim -->
+                            {% for claim in item.claims.all %}
+                                {% if claim.au_email == request.user.email %}
+                                    <span class="dash-meta-chip" style="color: green; font-weight: 700;">
+                                        ✅ Claimed on {{ claim.claimed_at|date:"Y-m-d" }}
+                                    </span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                    </div>
+
+                    <div class="dash-item-right">
+                        {% if item.image %}
+                            <img src="{{ item.image.url }}"
+                                 class="dash-item-thumb"
+                                 alt="{{ item.item_name }}">
+                        {% endif %}
+                        <a href="{% url 'item_detail' item.id %}" class="dash-view-btn">
+                            View Details
+                        </a>
+                    </div>
+
+                </div>
+
+                {% endwith %}
+
+                {% empty %}
+                <div style="text-align: center; padding: 60px 0;
+                             font-family: 'Montserrat', Arial, sans-serif;">
+                    <p style="font-size: 32px; margin-bottom: 12px;">📭</p>
+                    <p class="dash-empty">No items claimed with your email yet.</p>
+                    <p style="font-size: 13px; color: #aaa; margin-top: 6px;">
+                        When a reporter processes a claim using your AU email,
+                        it will appear here.
+                    </p>
+                </div>
+                {% endfor %}
+
+            </div>
+
+        </main>
+    </div>
+
+    <script src="{% static 'items/script.js' %}"></script>
+
+</body>
+</html>
