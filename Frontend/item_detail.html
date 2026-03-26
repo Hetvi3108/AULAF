@@ -1,0 +1,123 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Item Details - AULAF</title>
+    <link rel="stylesheet" href="{% static 'items/in.css' %}">
+</head>
+
+<body>
+
+    <h1>Item Details</h1>
+
+    <div class="item-card">
+
+        <h2>{{ item.item_name }}</h2>
+
+        {% if item.image %}
+            <img src="{{ item.image.url }}"
+                 alt="{{ item.item_name }}"
+                 class="item-img"
+                 onclick="openImage(this.src)">
+            <p class="zoom-hint">Click image to zoom</p>
+        {% endif %}
+
+        <p><strong>Description:</strong> {{ item.description }}</p>
+
+        <p>
+            <strong>Status:</strong>
+            <span class="status-tag {% if item.status == 'Collected' %}collected{% else %}not-collected{% endif %}">
+                {{ item.status }}
+            </span>
+        </p>
+
+        <p><strong>Location:</strong> {{ item.location|default:"Not specified" }}</p>
+
+        <p><strong>Submission Type:</strong> {{ item.submission_type }}</p>
+
+        <p><strong>Reported By:</strong> {{ item.reported_by.username }}</p>
+
+        <p><strong>Date Reported:</strong> {{ item.date_reported|date:"Y-m-d H:i" }}</p>
+        <!-- ✅ Claim button — only visible to reporter, only if not collected -->
+        {% if request.user == item.reported_by and item.status != "Collected" %}
+            <div style="margin-top: 15px;">
+                <a href="{% url 'claim_item' item.id %}" class="button-link">
+                    🎫 Process Claim
+                </a>
+            </div>
+        {% endif %}
+
+        <!-- ✅ View all claims — only visible to reporter -->
+        {% if request.user == item.reported_by %}
+            <div style="margin-top: 8px;">
+                <a href="{% url 'view_claims' item.id %}" class="button-link"
+                style="background: #003366;">
+                    📋 View Claims
+                </a>
+            </div>
+        {% endif %}
+
+    </div>
+
+    <div style="text-align:center;">
+        <a href="{% url 'home' %}" class="button-link">⬅ Back to Dashboard</a>
+    </div>
+
+    <!-- Image Zoom Modal -->
+    <div id="imageModal" style="
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.95);
+        justify-content: center;
+        align-items: center;
+        cursor: zoom-out;
+    ">
+        <span onclick="closeImage()" style="
+            position: absolute;
+            top: 20px; right: 35px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            line-height: 1;
+        ">&times;</span>
+
+        <img id="modalImg" src="" style="
+            max-width: 95%;
+            max-height: 95vh;
+            object-fit: contain;
+            border-radius: 10px;
+        ">
+    </div>
+
+    <!-- Self-contained zoom script, no dependency on script.js -->
+    <script>
+        function openImage(src) {
+            var modal = document.getElementById("imageModal");
+            var modalImg = document.getElementById("modalImg");
+            modalImg.src = src;
+            modal.style.display = "flex";
+        }
+
+        function closeImage() {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "none";
+            document.getElementById("modalImg").src = "";
+        }
+
+        // Click backdrop to close
+        document.getElementById("imageModal").addEventListener("click", function(e) {
+            if (e.target === this) closeImage();
+        });
+
+        // Escape key to close
+        document.addEventListener("keydown", function(e) {
+            if (e.key === "Escape") closeImage();
+        });
+    </script>
+
+</body>
+</html>
