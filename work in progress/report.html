@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LFMS - Report Item</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="main">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <h2>LFMS</h2>
+        <ul>
+            <li>Dashboard</li>
+            <li>Report Item</li>
+            <li>Search Items</li>
+            <li>My Items</li>
+            <li>Reports</li>
+            <li class="logout">Logout</li>
+        </ul>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+        <h2>Report Lost or Found Item</h2>
+        <p>Fill in the details below to report the item</p>
+
+        <form>
+
+            <!-- STATUS -->
+            <label>Status *</label>
+            <select required>
+                <option>Select Status</option>
+                <option>Lost</option>
+                <option>Found</option>
+            </select>
+
+            <!-- ITEM NAME -->
+            <label>Item Name *</label>
+            <input type="text" placeholder="e.g., iPhone, Student ID" required>
+
+            <!-- CATEGORY -->
+            <label>Category *</label>
+            <select required>
+                <option>Select Category</option>
+                <option>Electronics</option>
+                <option>Wallet</option>
+                <option>Keys</option>
+                <option>Documents</option>
+            </select>
+
+            <!-- LOCATION -->
+            <label>Location *</label>
+            <input type="text" placeholder="e.g., Library 2nd Floor" required>
+
+            <!-- DATE -->
+            <label>Date *</label>
+            <input type="date" required>
+
+            <!-- CONTACT -->
+            <label>Contact *</label>
+            <input type="text" placeholder="Email or Phone number" required>
+
+            <!-- DESCRIPTION -->
+            <label>Description *</label>
+            <textarea id="description" placeholder="Provide a detailed description"></textarea>
+
+            <!-- VOICE -->
+            <div class="voice-box">
+                <button type="button" onclick="startRecording()">🎤 Speak</button>
+                <button type="button" onclick="stopRecording()">Stop</button>
+            </div>
+
+            <button class="submit">Submit Report</button>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+let mediaRecorder;
+let audioChunks = [];
+
+async function startRecording() {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.start();
+
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = e => {
+        audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = async () => {
+
+        const blob = new Blob(audioChunks, { type: "audio/wav" });
+
+        const formData = new FormData();
+        formData.append("audio", blob, "recording.wav");
+
+        const response = await fetch("/voice", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await response.json();
+
+        document.getElementById("description").value = data.text;
+    };
+}
+
+function stopRecording() {
+    mediaRecorder.stop();
+}
+</script>
+
+</body>
+</html>
