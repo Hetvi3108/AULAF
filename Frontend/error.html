@@ -1,0 +1,19 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Error - AULAF</title>
+    <link rel="stylesheet" href="{% static 'items/in.css' %}">
+</head>
+<body class="login-body">
+    <div class="login-card" style="text-align:center;">
+        <h2 class="login-heading">⚠ Access Denied</h2>
+        <p style="color:#f0d0d0; margin: 20px 0;">{{ message }}</p>
+        <a href="{% url 'home' %}" class="login-btn"
+           style="display:inline-block; text-decoration:none; padding:12px 24px;">
+            Back to Dashboard
+        </a>
+    </div>
+</body>
+</html>
