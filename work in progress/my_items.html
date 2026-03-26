@@ -1,0 +1,7 @@
+<h1>My Items</h1>
+
+{% for item in items %}
+    <p>{{ item.item_name }} - {{ item.status }}</p>
+{% empty %}
+    <p>No items reported by you.</p>
+{% endfor %}
