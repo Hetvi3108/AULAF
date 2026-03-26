@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register - AULAF | Ahmedabad University Lost & Found</title>
+    <link rel="stylesheet" href="{% static 'items/in.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="register-body">
+
+    <div class="login-card">
+
+        <!-- Logo -->
+        <div class="login-logo-wrapper">
+            <img src="{% static 'items/au_logo.jpeg' %}" alt="Ahmedabad University Logo" class="login-logo">
+        </div>
+
+        <!-- Title -->
+        <h1 class="login-heading">AULAF</h1>
+        <p class="login-subheading">Create Your Account</p>
+
+        <!-- Form -->
+        <form method="POST" class="login-form register-form">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="login-field">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <span class="field-error">{{ field.errors|join:", " }}</span>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="login-btn">Register</button>
+        </form>
+
+        <p class="register-login-link">
+            Already have an account? <a href="{% url 'login' %}">Sign In</a>
+        </p>
+
+    </div>
+
+</body>
+</html>
