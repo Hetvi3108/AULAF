@@ -1,0 +1,324 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>File Complaint - AULAF</title>
+    <link rel="stylesheet" href="{% static 'items/in.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Montserrat', Arial, sans-serif;
+            background: #f2f2f2;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── slim top bar (replaces black navbar) ── */
+        .complaint-topbar {
+            width: 100%;
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 10px 32px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .complaint-topbar img { height: 32px; border-radius: 4px; }
+        .complaint-topbar .brand {
+            font-size: 15px; font-weight: 700; color: #7B1C1C; letter-spacing: 1px;
+        }
+        .complaint-topbar .back-link {
+            margin-left: auto; font-size: 13px; color: #7B1C1C; text-decoration: none; font-weight: 600;
+        }
+        .complaint-topbar .back-link:hover { text-decoration: underline; }
+
+        /* ── page ── */
+        .complaint-page {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px 60px;
+        }
+
+        /* ── card ── */
+        .complaint-card {
+            width: 100%;
+            max-width: 820px;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+        }
+        .complaint-card-header {
+            background: #7B1C1C;
+            color: #fff;
+            padding: 28px 36px 22px;
+            text-align: center;
+        }
+        .complaint-card-header h1 { font-size: 24px; font-weight: 700; }
+        .complaint-card-header p  { font-size: 13px; opacity: .82; margin-top: 4px; }
+
+        /* ── success message ── */
+        .complaint-messages { padding: 16px 36px 0; }
+        .msg-box {
+            background: #fffbea;
+            border: 1px solid #e2c96b;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #5a4a00;
+            margin-bottom: 10px;
+        }
+
+        /* ── form body ── */
+        .complaint-form-body { padding: 28px 36px 36px; }
+
+        .form-section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .form-row { display: grid; gap: 14px; margin-bottom: 14px; }
+        .form-row.col-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .form-row.col-2 { grid-template-columns: 1fr 1fr; }
+        .form-row.col-1 { grid-template-columns: 1fr; }
+
+        .form-field label {
+            display: block; font-size: 12px; font-weight: 600;
+            color: #555; margin-bottom: 5px;
+        }
+        .form-field label .req { color: #7B1C1C; }
+
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
+            width: 100%;
+            padding: 10px 13px;
+            border: 1.5px solid #d5d5d5;
+            border-radius: 7px;
+            font-size: 13px;
+            font-family: 'Montserrat', Arial, sans-serif;
+            color: #222;
+            background: #fafafa;
+            transition: border-color .2s;
+            outline: none;
+        }
+        .form-field input:focus,
+        .form-field select:focus,
+        .form-field textarea:focus { border-color: #7B1C1C; background: #fff; }
+        .form-field textarea { resize: vertical; min-height: 100px; }
+
+        /* item info preview box */
+        #itemPreview {
+            background: #f9f4f4;
+            border: 1px solid #e0cccc;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 12px;
+            color: #555;
+            margin-top: 8px;
+            display: none;
+        }
+        #itemPreview strong { color: #7B1C1C; }
+        #itemPreview table { width: 100%; border-collapse: collapse; }
+        #itemPreview td { padding: 3px 6px; }
+        #itemPreview td:first-child { font-weight: 600; color: #333; width: 130px; }
+
+        .form-divider { border: none; border-top: 2px solid #f0f0f0; margin: 24px 0; }
+
+        .submit-btn {
+            display: block;
+            width: 100%;
+            padding: 13px;
+            background: #7B1C1C;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Montserrat', Arial, sans-serif;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            letter-spacing: .5px;
+            margin-top: 20px;
+            transition: background .2s;
+        }
+        .submit-btn:hover { background: #5a1313; }
+
+        @media (max-width: 640px) {
+            .complaint-form-body { padding: 20px 18px 28px; }
+            .complaint-messages  { padding: 14px 18px 0; }
+            .complaint-card-header { padding: 22px 18px 16px; }
+            .form-row.col-3,
+            .form-row.col-2 { grid-template-columns: 1fr; }
+        }
+
+        /* google translate */
+        #google_translate_element {
+            position: fixed; top: 10px; right: 16px; z-index: 99999;
+            background: #fff; border-radius: 8px; padding: 4px 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .goog-te-banner-frame, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; }
+        body { top: 0 !important; }
+    </style>
+</head>
+<body>
+
+<!-- SLIM TOP BAR (no black navbar) -->
+<div class="complaint-topbar">
+    <img src="{% static 'items/au_logo.jpeg' %}" alt="AU" onerror="this.style.display='none'">
+    <span class="brand">AULAF</span>
+    <a href="{% url 'home' %}" class="back-link">← Back to Dashboard</a>
+</div>
+
+<div class="complaint-page">
+<div class="complaint-card">
+
+    <!-- HEADER -->
+    <div class="complaint-card-header">
+        <h1>Complaint Form</h1>
+        <p>Submit a complaint — we'll review it and get back to you</p>
+    </div>
+
+    <!-- SUCCESS -->
+    {% if success_message %}
+    <div class="complaint-messages">
+        <div class="msg-box">✅ {{ success_message }}</div>
+    </div>
+    {% endif %}
+
+    <!-- FORM -->
+    <div class="complaint-form-body">
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- SECTION 1: COMPLAINANT INFO -->
+        <div class="form-section-title">Complainant Information</div>
+
+        <div class="form-row col-3">
+            <div class="form-field">
+                <label>Full Name <span class="req">*</span></label>
+                <input type="text" name="full_name" placeholder="e.g. Twisha Patel" required>
+            </div>
+            <div class="form-field">
+                <label>University Email ID <span class="req">*</span></label>
+                <input type="email" name="au_email" value="{{ user_email }}" placeholder="e.g. hetvi.s4@ahduni.edu.in" required>
+            </div>
+            <div class="form-field">
+                <label>Enrollment Number <span class="req">*</span></label>
+                <input type="text" name="enrollment_number" placeholder="e.g. AU2340056" required>
+            </div>
+        </div>
+
+        <hr class="form-divider">
+
+        <!-- SECTION 2: COMPLAINT DETAILS -->
+        <div class="form-section-title">Complaint Details</div>
+
+        <div class="form-row col-2">
+            <div class="form-field">
+                <label>Category <span class="req">*</span></label>
+                <select name="category" required>
+                    <option value="" disabled selected>Select category</option>
+                    <option value="lost_item">Lost Item Issue</option>
+                    <option value="found_item">Found Item Issue</option>
+                    <option value="claim_issue">Claim Issue</option>
+                    <option value="misconduct">Misconduct</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-field">
+                <label>Related Item (optional)</label>
+                <select name="related_item_id" id="itemSelect" onchange="showItemPreview(this)">
+                    <option value="">— Select an item (if applicable) —</option>
+                    {% for item in all_related_items %}
+                    <option value="{{ item.id }}"
+                        data-name="{{ item.item_name }}"
+                        data-desc="{{ item.description|default:'N/A' }}"
+                        data-loc="{{ item.get_submitted_at_display|default:'N/A' }}"
+                        data-status="{{ item.status }}"
+                        data-reported="{{ item.reported_by.username }}"
+                        data-date="{{ item.date_reported|date:'d M Y' }}"
+                    >
+                        {{ item.item_name }} ({{ item.status }})
+                    </option>
+                    {% empty %}
+                    <option disabled>No items found in your history</option>
+                    {% endfor %}
+                </select>
+
+                <!-- Auto-fetched item info preview -->
+                <div id="itemPreview">
+                    <table>
+                        <tr><td>Item</td><td id="pName"></td></tr>
+                        <tr><td>Description</td><td id="pDesc"></td></tr>
+                        <tr><td>Location</td><td id="pLoc"></td></tr>
+                        <tr><td>Status</td><td id="pStatus"></td></tr>
+                        <tr><td>Reported by</td><td id="pReported"></td></tr>
+                        <tr><td>Date</td><td id="pDate"></td></tr>
+                    </table>
+                    <p style="margin-top:8px; font-size:11px; color:#888;">
+                        ℹ️ Item details and claimer info will be automatically included in the admin email.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row col-1">
+            <div class="form-field">
+                <label>Complaint Details <span class="req">*</span></label>
+                <textarea name="complaint_details"
+                          placeholder="Please describe your complaint in detail…"
+                          required></textarea>
+            </div>
+        </div>
+
+        <button type="submit" class="submit-btn">Submit Complaint</button>
+    </form>
+    </div>
+
+</div>
+</div>
+
+<script>
+function showItemPreview(sel) {
+    const opt = sel.options[sel.selectedIndex];
+    const preview = document.getElementById('itemPreview');
+    if (!opt.value) { preview.style.display = 'none'; return; }
+    document.getElementById('pName').textContent     = opt.dataset.name    || '—';
+    document.getElementById('pDesc').textContent     = opt.dataset.desc    || '—';
+    document.getElementById('pLoc').textContent      = opt.dataset.loc     || '—';
+    document.getElementById('pStatus').textContent   = opt.dataset.status  || '—';
+    document.getElementById('pReported').textContent = opt.dataset.reported || '—';
+    document.getElementById('pDate').textContent     = opt.dataset.date    || '—';
+    preview.style.display = 'block';
+}
+</script>
+
+<div id="google_translate_element"></div>
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'en',
+      includedLanguages: 'en,hi,gu,mr,ta,te,kn,ml,pa,bn,or,as,ur,ne,si,kok,mai,mni,sat,doi,ks',
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+      autoDisplay: false,
+    }, 'google_translate_element');
+  }
+</script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

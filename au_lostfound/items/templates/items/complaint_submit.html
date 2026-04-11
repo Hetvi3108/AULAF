@@ -1,0 +1,265 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Submit Complaint - AULAF</title>
+    <link rel="stylesheet" href="{% static 'items/in.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Full page maroon background, no black bar */
+        .complaint-page {
+            min-height: 100vh;
+            background: #e8e0e0;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Montserrat', Arial, sans-serif;
+        }
+
+        /* Maroon top bar matching dashboard navbar */
+        .complaint-navbar {
+            background: #7B1C1C;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            padding: 0 28px;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .complaint-nav-logo {
+            width: 40px;
+            height: 40px;
+            background: #5a1010;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .complaint-nav-title {
+            color: #fff;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .complaint-nav-back {
+            margin-left: auto;
+            color: #f0d0d0;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .complaint-nav-back:hover {
+            color: #fff;
+        }
+
+        /* Body area */
+        .complaint-body {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        /* Card */
+        .complaint-card {
+            background: #7B1C1C;
+            border-radius: 20px;
+            padding: 36px 40px 40px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+        }
+
+        .complaint-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .complaint-icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+
+        .complaint-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 1px;
+            margin: 0 0 4px;
+        }
+
+        .complaint-subtitle {
+            font-size: 14px;
+            color: #f0d0d0;
+            margin: 0;
+        }
+
+        /* Item banner */
+        .complaint-item-banner {
+            background: #5a1010;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #f0d0d0;
+        }
+
+        .complaint-item-banner strong {
+            color: #fff;
+        }
+
+        /* Fields */
+        .complaint-field {
+            margin-bottom: 18px;
+        }
+
+        .complaint-field label {
+            display: block;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .complaint-field input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: none;
+            background: #e8e8e8;
+            color: #333;
+            font-size: 14px;
+            font-family: 'Montserrat', Arial, sans-serif;
+            outline: none;
+        }
+
+        .complaint-field input::placeholder {
+            color: #999;
+        }
+
+        .complaint-field input:focus {
+            background: #f5f5f5;
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.35);
+        }
+
+        .field-error {
+            display: block;
+            color: #ffb3b3;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        /* Submit button */
+        .complaint-btn {
+            width: 100%;
+            padding: 14px;
+            background: #0a091a;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'Montserrat', Arial, sans-serif;
+            letter-spacing: 1px;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: background 0.2s;
+        }
+
+        .complaint-btn:hover {
+            background: #1a1a3a;
+        }
+    </style>
+</head>
+
+<body>
+<div class="complaint-page">
+
+    <!-- Navbar — maroon, matches dashboard, no black -->
+    <nav class="complaint-navbar">
+        <div class="complaint-nav-logo">
+            <img src="{% static 'items/au_logo.jpeg' %}" alt="AU"
+                 style="width:36px; height:36px; object-fit:contain;"
+                 onerror="this.style.display='none'">
+        </div>
+        <span class="complaint-nav-title">AULAF</span>
+        {% if item %}
+            <a href="{% url 'item_detail' item.id %}" class="complaint-nav-back">⬅ Back to Item</a>
+        {% else %}
+            <a href="{% url 'home' %}" class="complaint-nav-back">⬅ Back to Dashboard</a>
+        {% endif %}
+    </nav>
+
+    <!-- Centered form -->
+    <div class="complaint-body">
+        <div class="complaint-card">
+
+            <div class="complaint-header">
+                <div class="complaint-icon">📢</div>
+                <h2 class="complaint-title">Complaint</h2>
+                <p class="complaint-subtitle">Submit a Complaint</p>
+            </div>
+
+            <!-- Item banner if from item page -->
+            {% if item %}
+            <div class="complaint-item-banner">
+                📦 Item: <strong>{{ item.item_name }}</strong> &nbsp;(#{{ item.id }})
+            </div>
+            {% endif %}
+
+            <form method="POST" novalidate>
+                {% csrf_token %}
+
+                <!-- Full Name -->
+                <div class="complaint-field">
+                    <label>Full Name <span style="color:#ffb3b3;">*</span></label>
+                    <input type="text" name="name"
+                           placeholder="e.g. Twisha Patel"
+                           value="{{ form.name.value|default:'' }}">
+                    {% if form.name.errors %}
+                        <span class="field-error">{{ form.name.errors.0 }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Email ID -->
+                <div class="complaint-field">
+                    <label>Email ID <span style="color:#ffb3b3;">*</span></label>
+                    <input type="email" name="user_email"
+                           placeholder="your.name@ahduni.edu.in"
+                           value="{{ form.user_email.value|default:'' }}">
+                    {% if form.user_email.errors %}
+                        <span class="field-error">{{ form.user_email.errors.0 }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Enrollment Number -->
+                <div class="complaint-field">
+                    <label>Enrollment Number <span style="color:#ffb3b3;">*</span></label>
+                    <input type="text" name="enrollment_number"
+                           placeholder="e.g. AU2340056"
+                           value="{{ form.enrollment_number.value|default:'' }}">
+                    {% if form.enrollment_number.errors %}
+                        <span class="field-error">{{ form.enrollment_number.errors.0 }}</span>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="complaint-btn">
+                    Submit Complaint
+                </button>
+            </form>
+
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

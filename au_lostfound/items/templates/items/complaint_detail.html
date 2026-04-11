@@ -1,0 +1,162 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Complaint #{{ complaint.id }} - AULAF</title>
+    <link rel="stylesheet" href="{% static 'items/in.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        .detail-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 28px;
+            max-width: 680px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            font-family: 'Montserrat', Arial, sans-serif;
+        }
+        .detail-card h3 {
+            color: #7B1C1C;
+            margin: 0 0 20px;
+            font-size: 18px;
+        }
+        .detail-row {
+            display: flex;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .detail-label {
+            font-weight: 700;
+            color: #555;
+            width: 160px;
+            flex-shrink: 0;
+        }
+        .detail-value { color: #222; }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .status-pending  { background: #fef3c7; color: #92400e; }
+        .status-reviewed { background: #dbeafe; color: #1e40af; }
+        .status-resolved { background: #d1fae5; color: #065f46; }
+        .status-closed   { background: #e5e7eb; color: #374151; }
+        .remarks-box {
+            background: #f8f0f0;
+            border-radius: 8px;
+            padding: 14px;
+            margin-top: 6px;
+            font-size: 14px;
+            white-space: pre-wrap;
+            color: #333;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #7B1C1C;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            font-family: 'Montserrat', Arial, sans-serif;
+        }
+        .back-link:hover { color: #5a1010; }
+    </style>
+</head>
+
+<body class="dashboard-body">
+
+    <nav class="dash-navbar">
+        <div class="dash-nav-left">
+            <div class="dash-nav-logo">
+                <img src="{% static 'items/au_logo.jpeg' %}" alt="AU" class="nav-icon"
+                     onerror="this.style.display='none'">
+            </div>
+            <span class="dash-nav-title">AULAF</span>
+        </div>
+    </nav>
+
+    <div class="dash-layout">
+        <aside class="dash-sidebar">
+            <div class="dash-avatar">
+                <div class="dash-avatar-circle">
+                    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="20" cy="15" r="7" fill="#aaa"/>
+                        <ellipse cx="20" cy="32" rx="12" ry="7" fill="#aaa"/>
+                    </svg>
+                </div>
+            </div>
+            <nav class="dash-sidebar-nav">
+                <a href="{% url 'home' %}"          class="dash-sidebar-link">Dashboard</a>
+                <a href="{% url 'add_item' %}"       class="dash-sidebar-link">Report Item</a>
+                <a href="{% url 'my_items' %}"       class="dash-sidebar-link">My Items</a>
+                <a href="{% url 'my_complaints' %}"  class="dash-sidebar-link active">My Complaints</a>
+            </nav>
+            <a href="{% url 'logout' %}" class="dash-logout-btn">Logout</a>
+        </aside>
+
+        <main class="dash-main">
+            <a href="{% url 'my_complaints' %}" class="back-link">⬅ Back to My Complaints</a>
+
+            <div class="detail-card">
+                <h3>Complaint #{{ complaint.id }}</h3>
+
+                <div class="detail-row">
+                    <span class="detail-label">Your Name</span>
+                    <span class="detail-value">{{ complaint.name }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Email</span>
+                    <span class="detail-value">{{ complaint.user_email }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Enrollment No.</span>
+                    <span class="detail-value">{{ complaint.enrollment_number }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Subject</span>
+                    <span class="detail-value">{{ complaint.subject }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Category</span>
+                    <span class="detail-value">{{ complaint.get_category_display }}</span>
+                </div>
+                {% if complaint.related_item %}
+                <div class="detail-row">
+                    <span class="detail-label">Related Item</span>
+                    <span class="detail-value">
+                        <a href="{% url 'item_detail' complaint.related_item.id %}"
+                           style="color:#7B1C1C; font-weight:600;">
+                            {{ complaint.related_item.item_name }} (#{{ complaint.related_item.id }})
+                        </a>
+                    </span>
+                </div>
+                {% endif %}
+                <div class="detail-row">
+                    <span class="detail-label">Status</span>
+                    <span class="detail-value">
+                        <span class="status-badge status-{{ complaint.status }}">
+                            {{ complaint.get_status_display }}
+                        </span>
+                    </span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Filed On</span>
+                    <span class="detail-value">{{ complaint.created_at|date:"d M Y, H:i" }}</span>
+                </div>
+
+                {% if complaint.staff_remarks %}
+                <div style="margin-top: 20px;">
+                    <span class="detail-label" style="display:block; margin-bottom:8px;">
+                        Staff Response:
+                    </span>
+                    <div class="remarks-box">{{ complaint.staff_remarks }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,180 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Complaints - AULAF</title>
+    <link rel="stylesheet" href="{% static 'items/in.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        .status-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .status-pending  { background: #fef3c7; color: #92400e; }
+        .status-reviewed { background: #dbeafe; color: #1e40af; }
+        .status-resolved { background: #d1fae5; color: #065f46; }
+        .status-closed   { background: #e5e7eb; color: #374151; }
+
+        .complaints-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Montserrat', Arial, sans-serif;
+            font-size: 14px;
+        }
+        .complaints-table thead tr {
+            background: #222;
+            color: #fff;
+        }
+        .complaints-table thead th {
+            padding: 13px 16px;
+            text-align: left;
+            font-weight: 700;
+        }
+        .complaints-table tbody tr {
+            border-bottom: 1px solid #e0d8d8;
+            background: #fff;
+            transition: background 0.15s;
+        }
+        .complaints-table tbody tr:nth-child(even) {
+            background: #f5f0f0;
+        }
+        .complaints-table tbody tr:hover {
+            background: #ede4e4;
+        }
+        .complaints-table tbody td {
+            padding: 13px 16px;
+            color: #333;
+        }
+        .view-btn {
+            display: inline-block;
+            padding: 6px 18px;
+            border: 1.5px solid #7B1C1C;
+            border-radius: 6px;
+            color: #7B1C1C;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.15s;
+        }
+        .view-btn:hover {
+            background: #7B1C1C;
+            color: #fff;
+        }
+        
+       
+        .page-heading {
+            font-family: 'Montserrat', Arial, sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: #7B1C1C;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .heading-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+
+    <!-- ===== TOP NAVBAR ===== -->
+    <nav class="dash-navbar">
+        <div class="dash-nav-left">
+            <div class="dash-nav-logo">
+                <img src="{% static 'items/au_logo.jpeg' %}" alt="AU" class="nav-icon"
+                     onerror="this.style.display='none'">
+            </div>
+            <span class="dash-nav-title">AULAF</span>
+        </div>
+
+        <div class="dash-nav-center">
+            <div class="dash-search-wrapper">
+                <span class="dash-search-icon">⌕</span>
+                <input type="text" id="searchBox"
+                       placeholder="Search Complaints"
+                       class="dash-search-input"
+                       autocomplete="off">
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== LAYOUT WRAPPER ===== -->
+    <div class="dash-layout">
+
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="dash-sidebar">
+            <div class="dash-avatar">
+                <div class="dash-avatar-circle">
+                    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="20" cy="15" r="7" fill="#aaa"/>
+                        <ellipse cx="20" cy="32" rx="12" ry="7" fill="#aaa"/>
+                    </svg>
+                </div>
+            </div>
+
+            <nav class="dash-sidebar-nav">
+                <a href="{% url 'home' %}"          class="dash-sidebar-link">Dashboard</a>
+                <a href="{% url 'add_item' %}"       class="dash-sidebar-link">Report Item</a>
+                <a href="{% url 'my_items' %}"       class="dash-sidebar-link">My Items</a>
+                <a href="{% url 'my_complaints' %}"  class="dash-sidebar-link active">My Complaints</a>
+            </nav>
+
+            <a href="{% url 'logout' %}" class="dash-logout-btn">Logout</a>
+        </aside>
+
+        <!-- ===== MAIN CONTENT ===== -->
+        <main class="dash-main">
+
+            
+
+            {% if complaints %}
+            <table class="complaints-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Subject</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th>Filed On</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in complaints %}
+                    <tr>
+                        <td>{{ c.id }}</td>
+                        <td>{{ c.subject }}</td>
+                        <td>{{ c.get_category_display }}</td>
+                        <td>
+                            <span class="status-badge status-{{ c.status }}">
+                                {{ c.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ c.created_at|date:"d M Y" }}</td>
+                        <td>
+                            <a href="{% url 'complaint_detail_view' c.id %}" class="view-btn">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            
+            {% endif %}
+
+        </main>
+    </div>
+
+    <script src="{% static 'items/script.js' %}"></script>
+</body>
+</html>

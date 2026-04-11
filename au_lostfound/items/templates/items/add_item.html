@@ -1,0 +1,447 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Item - AULAF</title>
+    <link rel="stylesheet" href="{% static 'items/in.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        #google_translate_element {
+            position: fixed;
+            top: 12px;
+            right: 16px;
+            z-index: 99999;
+            background: #fff;
+            border-radius: 8px;
+            padding: 4px 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .goog-te-banner-frame,
+        #goog-gt-tt,
+        .goog-te-balloon-frame { display: none !important; }
+        body { top: 0 !important; }
+        .goog-te-gadget {
+            font-family: 'Montserrat', Arial, sans-serif !important;
+            font-size: 13px !important;
+            color: #7B1C1C !important;
+        }
+        .goog-te-gadget select {
+            border: 1px solid #c9a0a0;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 13px;
+            color: #7B1C1C;
+            font-family: 'Montserrat', Arial, sans-serif;
+            outline: none;
+            cursor: pointer;
+        }
+        /* Recording indicator */
+        .recording-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            color: #c0392b;
+            font-size: 13px;
+            font-family: 'Montserrat', Arial, sans-serif;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+        .recording-dot {
+            width: 10px;
+            height: 10px;
+            background: #c0392b;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.2; }
+        }
+        .transcript-hint {
+            font-size: 12px;
+            color: #888;
+            font-family: 'Montserrat', Arial, sans-serif;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+
+<body class="login-body">
+
+    <div class="login-card">
+
+        <h2 class="login-heading">Report Item</h2>
+        <p class="login-subheading">Add Lost or Found Item</p>
+
+        {% if form.errors %}
+        <div style="color:#ffb3b3; text-align:center; margin-bottom:10px; font-size:13px;
+                     font-family:'Montserrat',Arial,sans-serif;">
+            <strong>Form Errors:</strong> {{ form.errors }}
+        </div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" class="login-form">
+            {% csrf_token %}
+
+            <div class="login-field">
+                <label>Item Name</label>
+                {{ form.item_name }}
+            </div>
+
+            <!-- Description — pre-filled by voice, or typed manually -->
+            <div class="login-field">
+                <label>Description <span style="font-size:11px; color:#999;">(type or use voice below)</span></label>
+                {{ form.description }}
+            </div>
+
+            <div class="login-field">
+                <label>Submission Type</label>
+                {{ form.submission_type }}
+            </div>
+
+            <div class="login-field" id="locationField" style="display:none;">
+                <label>Location</label>
+                {{ form.submitted_at }}
+            </div>
+
+            <!-- Item Image -->
+            <div class="login-field">
+                <label>Item Image</label>
+
+                <input type="file" id="imageInput" name="image"
+                       accept="image/*" style="display:none"
+                       onchange="previewFile(this)">
+
+                <div class="upload-btn-row">
+                    <button type="button" class="upload-btn" onclick="chooseFile()">
+                        📁 Choose File
+                    </button>
+                    <button type="button" class="upload-btn" onclick="takePhoto()">
+                        📷 Take Photo
+                    </button>
+                </div>
+
+                <div id="imagePreview" class="upload-preview" style="display:none;">
+                    <img id="imagePreviewImg" src="" alt="Preview"
+                         style="max-width:100%; border-radius:8px; margin-top:8px;">
+                    <span id="imagePreviewName" class="upload-filename"></span>
+                </div>
+
+                {% if form.image.errors %}
+                    <span class="field-error">{{ form.image.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <!-- Voice Description -->
+            <div class="login-field">
+                <label>Voice Description <span style="font-size:11px; color:#999;">(Optional — fills description automatically)</span></label>
+
+                <!-- Hidden file input that carries the recorded blob -->
+                <input type="file" name="audio_blob" id="audioBlobInput" hidden>
+
+                <div class="upload-btn-row">
+                    <button type="button" class="upload-btn" id="startBtn" onclick="startRecording()">
+                        🎤 Start
+                    </button>
+                    <button type="button" class="upload-btn" id="stopBtn" onclick="stopRecording()" disabled>
+                        ⏹ Stop
+                    </button>
+                </div>
+
+                <!-- Live recording indicator -->
+                <div class="recording-indicator" id="recordingIndicator">
+                    <div class="recording-dot"></div> Recording…
+                </div>
+
+                <p class="transcript-hint" id="transcriptHint" style="display:none;">
+                    ✅ Voice transcribed into Description. Audio file also attached.
+                </p>
+
+                <!-- Playback for the recorded audio -->
+                <audio id="audioPlayback" controls
+                       style="display:none; margin-top:10px; width:100%;"></audio>
+
+                <!-- Keeps the server-returned filename if you still need it -->
+                <input type="hidden" name="audio_file" id="audioFileInput">
+            </div>
+
+            <button type="submit" class="login-btn">✅ Submit Item</button>
+
+        </form>
+
+        <p class="register-login-link">
+            <a href="{% url 'home' %}">⬅ Back to Dashboard</a>
+        </p>
+
+    </div>
+
+    <!-- Camera Modal -->
+    <div id="cameraModal" style="
+        display:none; position:fixed; z-index:9999;
+        top:0; left:0; width:100%; height:100%;
+        background:rgba(0,0,0,0.92);
+        justify-content:center; align-items:center;
+        flex-direction:column; gap:16px;">
+
+        <video id="cameraVideo" style="
+            max-width:90%; max-height:60vh;
+            border-radius:12px; background:#000;">
+        </video>
+        <canvas id="cameraCanvas" style="display:none;"></canvas>
+
+        <div style="display:flex; gap:16px;">
+            <button onclick="capturePhoto()" style="
+                padding:12px 28px; background:#7B1C1C; color:white;
+                border:none; border-radius:10px; font-size:15px;
+                font-weight:700; cursor:pointer;">
+                📸 Capture
+            </button>
+            <button onclick="closeCamera()" style="
+                padding:12px 28px; background:#444; color:white;
+                border:none; border-radius:10px; font-size:15px;
+                font-weight:700; cursor:pointer;">
+                ✕ Cancel
+            </button>
+        </div>
+    </div>
+
+    <!-- Language Switcher -->
+    <div id="google_translate_element"></div>
+
+    <script>
+        // ---- SUBMISSION TYPE TOGGLE ----
+        var submissionType = document.querySelector("[name='submission_type']");
+        var locationField  = document.getElementById("locationField");
+
+        function toggleLocation() {
+            if (!submissionType || !locationField) return;
+            locationField.style.display = submissionType.value === "desk" ? "block" : "none";
+        }
+        toggleLocation();
+        if (submissionType) submissionType.addEventListener("change", toggleLocation);
+
+        // ---- FILE / CAMERA ----
+        function chooseFile() {
+            var input = document.getElementById("imageInput");
+            input.removeAttribute("capture");
+            input.click();
+        }
+
+        function takePhoto() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert("Camera not supported. Please use Choose File.");
+                return;
+            }
+            document.getElementById("cameraModal").style.display = "flex";
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    var video = document.getElementById("cameraVideo");
+                    video.srcObject = stream;
+                    video.play();
+                    window._cameraStream = stream;
+                })
+                .catch(function(err) {
+                    alert("Could not access camera: " + err.message);
+                    document.getElementById("cameraModal").style.display = "none";
+                });
+        }
+
+        function capturePhoto() {
+            var video  = document.getElementById("cameraVideo");
+            var canvas = document.getElementById("cameraCanvas");
+            canvas.width  = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext("2d").drawImage(video, 0, 0);
+            if (window._cameraStream) {
+                window._cameraStream.getTracks().forEach(function(t) { t.stop(); });
+            }
+            canvas.toBlob(function(blob) {
+                var timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+                var file = new File([blob], "camera_" + timestamp + ".jpg", { type: "image/jpeg" });
+                var dt   = new DataTransfer();
+                dt.items.add(file);
+                document.getElementById("imageInput").files = dt.files;
+                document.getElementById("imagePreviewImg").src          = canvas.toDataURL("image/jpeg");
+                document.getElementById("imagePreviewName").textContent = "camera_photo.jpg";
+                document.getElementById("imagePreview").style.display   = "flex";
+                document.getElementById("cameraModal").style.display    = "none";
+            }, "image/jpeg");
+        }
+
+        function closeCamera() {
+            if (window._cameraStream) {
+                window._cameraStream.getTracks().forEach(function(t) { t.stop(); });
+            }
+            document.getElementById("cameraModal").style.display = "none";
+        }
+
+        function previewFile(input) {
+            var file = input.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById("imagePreviewImg").src          = e.target.result;
+                document.getElementById("imagePreviewName").textContent = file.name;
+                document.getElementById("imagePreview").style.display   = "flex";
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // ---- VOICE RECORDING + TRANSCRIPTION ----
+        var mediaRecorder;
+        var audioChunks  = [];
+        var recognition  = null;
+        var liveTranscript = "";
+
+        // Web Speech API setup (live transcript while recording)
+        var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        async function startRecording() {
+            try {
+                var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks   = [];
+                liveTranscript = "";
+
+                // Collect raw audio chunks for the file
+                mediaRecorder.ondataavailable = function(e) {
+                    if (e.data.size > 0) audioChunks.push(e.data);
+                };
+
+                // When stopped: build audio file + fill description
+                mediaRecorder.onstop = function() {
+                    var blob = new Blob(audioChunks, { type: "audio/webm" });
+
+                    // ✅ Attach the audio blob as a file to the hidden input
+                    var timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+                    var audioFile = new File([blob], "voice_" + timestamp + ".webm", { type: "audio/webm" });
+                    var dt = new DataTransfer();
+                    dt.items.add(audioFile);
+                    document.getElementById("audioBlobInput").files = dt.files;
+
+                    // ✅ Show audio playback
+                    var audio = document.getElementById("audioPlayback");
+                    audio.src           = URL.createObjectURL(blob);
+                    audio.style.display = "block";
+
+                    // ✅ Fill description if we got a transcript
+                    if (liveTranscript.trim()) {
+                        var descField = document.querySelector("[name='description']");
+                        if (descField && !descField.value.trim()) {
+                            // Only auto-fill if user hasn't already typed something
+                            descField.value = liveTranscript.trim();
+                        } else if (descField && descField.value.trim()) {
+                            // Append voice text after existing text
+                            descField.value = descField.value.trim() + " " + liveTranscript.trim();
+                        }
+                        document.getElementById("transcriptHint").style.display = "block";
+                    }
+
+                    // UI reset
+                    document.getElementById("recordingIndicator").style.display = "none";
+                    document.getElementById("startBtn").disabled = false;
+                    document.getElementById("stopBtn").disabled  = true;
+                };
+
+                mediaRecorder.start(200); // collect chunks every 200ms
+
+                // ✅ Start Web Speech API for live transcription
+                if (SpeechRecognition) {
+                    recognition = new SpeechRecognition();
+                    recognition.lang        = "en-US";  // change if needed
+                    recognition.continuous  = true;
+                    recognition.interimResults = true;
+
+                    recognition.onresult = function(e) {
+                        var finalText = "";
+                        for (var i = e.resultIndex; i < e.results.length; i++) {
+                            if (e.results[i].isFinal) {
+                                finalText += e.results[i][0].transcript + " ";
+                            }
+                        }
+                        liveTranscript += finalText;
+                    };
+
+                    recognition.onerror = function(e) {
+                        console.warn("Speech recognition error:", e.error);
+                    };
+
+                    recognition.start();
+                } else {
+                    console.warn("Web Speech API not supported — no auto-transcription.");
+                }
+
+                // UI feedback
+                document.getElementById("recordingIndicator").style.display = "flex";
+                document.getElementById("transcriptHint").style.display     = "none";
+                document.getElementById("startBtn").disabled = true;
+                document.getElementById("stopBtn").disabled  = false;
+
+            } catch(err) {
+                alert("Microphone access denied: " + err.message);
+            }
+        }
+
+        function stopRecording() {
+            // Stop speech recognition first to flush final results
+            if (recognition) {
+                recognition.stop();
+                recognition = null;
+            }
+            // Small delay so last recognition results arrive before onstop fires
+            setTimeout(function() {
+                if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                    mediaRecorder.stop();
+                    // Stop all mic tracks
+                    mediaRecorder.stream.getTracks().forEach(function(t) { t.stop(); });
+                }
+            }, 300);
+        }
+
+        // ---- AUTO-TRANSLATE ON SUBMIT ----
+        async function translateToEnglish(text) {
+            if (!text || text.trim() === "") return text;
+            try {
+                var url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q="
+                          + encodeURIComponent(text);
+                var res  = await fetch(url);
+                var data = await res.json();
+                return data[0].map(function(chunk) { return chunk[0]; }).join("").trim();
+            } catch(e) {
+                return text;
+            }
+        }
+
+        // ---- AUTO-TRANSLATE ON SUBMIT ----
+        document.querySelector(".login-form").addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            
+            var textFields = this.querySelectorAll(
+                "input[type='text']:not([name='description']), input[type='number']:not([name='description']), textarea:not([name='description'])"
+            );
+
+            var translations = await Promise.all(
+                Array.from(textFields).map(function(field) {
+                    return translateToEnglish(field.value);
+                })
+            );
+            textFields.forEach(function(field, i) { field.value = translations[i]; });
+            e.target.submit();
+        });
+
+       
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'en,hi,gu,mr,ta,te,kn,ml,pa,bn,or,as,ur,ne,si,kok,mai,mni,sat,doi,ks',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false,
+            }, 'google_translate_element');
+        }
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>

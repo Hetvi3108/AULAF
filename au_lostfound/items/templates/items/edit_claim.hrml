@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Item - AULAF</title>
+    <link rel="stylesheet" href="{% static 'items/in.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="{% static 'items/script.js' %}" defer></script>
+</head>
+
+<body class="login-body">
+    <div class="login-card">
+
+        <h2 class="login-heading">Edit Item</h2>
+        <p class="login-subheading">{{ item.item_name }}</p>
+
+        {% if form.errors %}
+        <div style="color:#ffb3b3; text-align:center; margin-bottom:10px; font-size:13px;">
+            {{ form.errors }}
+        </div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" class="login-form">
+            {% csrf_token %}
+
+            <div class="login-field">
+                <label>Item Name</label>
+                {{ form.item_name }}
+            </div>
+
+            <div class="login-field">
+                <label>Description</label>
+                {{ form.description }}
+            </div>
+
+            <div class="login-field">
+                <label>Submission Type</label>
+                {{ form.submission_type }}
+            </div>
+
+            <div class="login-field" id="locationField">
+                <label>Location</label>
+                {{ form.submitted_at }}
+            </div>
+
+            {% if item.image %}
+            <div class="login-field">
+                <label>Current Image</label>
+                <img src="{{ item.image.url }}"
+                     style="width:100%; max-width:200px; border-radius:8px;
+                            display:block; margin-bottom:8px;">
+            </div>
+            {% endif %}
+
+            <div class="login-field">
+                <label>Replace Image (optional)</label>
+
+                <input type="file" id="imageFileInput" name="image"
+                       accept="image/*" style="display:none"
+                       onchange="previewFile(this, 'imagePreview')">
+                <input type="file" id="imageCamInput" name="image"
+                       accept="image/*" capture="environment" style="display:none"
+                       onchange="previewFile(this, 'imagePreview')">
+
+                <div class="upload-btn-row">
+                    <button type="button" class="upload-btn"
+                            onclick="document.getElementById('imageFileInput').click()">
+                        📁 Choose File
+                    </button>
+                    <button type="button" class="upload-btn"
+                            onclick="document.getElementById('imageCamInput').click()">
+                        📷 Take Photo
+                    </button>
+                </div>
+
+                <div id="imagePreview" class="upload-preview" style="display:none;">
+                    <img id="imagePreviewImg" src="" alt="Preview">
+                    <span id="imagePreviewName" class="upload-filename"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="login-btn">💾 Save Changes</button>
+        </form>
+
+        <p class="register-login-link">
+            <a href="{% url 'item_detail' item.id %}">⬅ Back to Item</a>
+        </p>
+
+    </div>
+
+    <script>
+        function previewFile(input, previewId) {
+            var file = input.files[0];
+            if (!file) return;
+            var preview     = document.getElementById(previewId);
+            var previewImg  = document.getElementById(previewId + "Img");
+            var previewName = document.getElementById(previewId + "Name");
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src          = e.target.result;
+                previewName.textContent = file.name;
+                preview.style.display   = "flex";
+            };
+            reader.readAsDataURL(file);
+        }
+    </script>
+</body>
+</html>

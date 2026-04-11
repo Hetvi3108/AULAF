@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirm Delete - AULAF</title>
+    <link rel="stylesheet" href="{% static 'items/in.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="login-body">
+    <div class="login-card">
+
+        <h2 class="login-heading" style="-webkit-text-fill-color:#fff;">
+            ⚠️ Confirm Delete
+        </h2>
+        <p class="login-subheading">This action cannot be undone</p>
+
+        <!-- Warning box -->
+        <div style="background: #5a1010; border-radius: 12px; padding: 18px 20px;
+                     width: 100%; box-sizing: border-box; margin-bottom: 24px; text-align:center;">
+            <p style="color: #ffb3b3; font-size: 14px; font-weight: 600;
+                       font-family: 'Montserrat', Arial, sans-serif; margin: 0 0 8px 0;">
+                Are you sure you want to delete:
+            </p>
+            <p style="color: #ffffff; font-size: 16px; font-weight: 700;
+                       font-family: 'Montserrat', Arial, sans-serif; margin: 0;
+                       word-break: break-word;">
+                "{{ object_name }}"
+            </p>
+
+            {% if type == "claim" %}
+            <p style="color: #f0d0d0; font-size: 12px; margin-top: 10px; margin-bottom: 0;
+                       font-family: 'Montserrat', Arial, sans-serif;">
+                ℹ️ The item will be reset to <strong>Not Collected</strong>
+                if no other claims remain.
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- Confirm delete — POST -->
+        <form method="POST" style="width:100%; background:transparent;
+                                    box-shadow:none; padding:0; margin:0;">
+            {% csrf_token %}
+            <button type="submit" class="login-btn"
+                    style="background: darkred; margin-bottom: 12px;">
+                🗑️ Yes, Delete
+            </button>
+        </form>
+
+        <!-- Cancel -->
+        <p class="register-login-link" style="margin-top: 4px;">
+            <a href="{% url cancel_url cancel_id %}">✕ Cancel</a>
+        </p>
+
+    </div>
+</body>
+</html>

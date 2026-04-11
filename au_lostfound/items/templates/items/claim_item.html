@@ -1,0 +1,251 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Process Claim - AULAF</title>
+    <link rel="stylesheet" href="{% static 'items/in.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        #google_translate_element {
+            position: fixed;
+            top: 12px;
+            right: 16px;
+            z-index: 99999;
+            background: #fff;
+            border-radius: 8px;
+            padding: 4px 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .goog-te-banner-frame,
+        #goog-gt-tt,
+        .goog-te-balloon-frame { display: none !important; }
+        body { top: 0 !important; }
+        .goog-te-gadget {
+            font-family: 'Montserrat', Arial, sans-serif !important;
+            font-size: 13px !important;
+            color: #7B1C1C !important;
+        }
+        .goog-te-gadget select {
+            border: 1px solid #c9a0a0;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 13px;
+            color: #7B1C1C;
+            font-family: 'Montserrat', Arial, sans-serif;
+            outline: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body class="login-body">
+
+    <div class="login-card">
+
+        <h2 class="login-heading">Process Claim</h2>
+        <p class="login-subheading">{{ item.item_name }}</p>
+
+        {% if form.errors %}
+        <div style="color:#ffb3b3; text-align:center; margin-bottom:10px; font-size:13px;
+                     font-family:'Montserrat',Arial,sans-serif;">
+            {{ form.errors }}
+        </div>
+        {% endif %}
+
+        <!-- ✅ ONE form, ONE closing tag, ONE submit button -->
+        <form method="POST" enctype="multipart/form-data" class="login-form">
+            {% csrf_token %}
+
+            <div class="login-field">
+                <label>Claimer Full Name</label>
+                {{ form.claimer_name }}
+                {% if form.claimer_name.errors %}
+                    <span class="field-error">{{ form.claimer_name.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="login-field">
+                <label>Enrollment Number</label>
+                {{ form.enrollment_no }}
+                {% if form.enrollment_no.errors %}
+                    <span class="field-error">{{ form.enrollment_no.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="login-field">
+                <label>AU Email (@ahduni.edu.in only)</label>
+                {{ form.au_email }}
+                {% if form.au_email.errors %}
+                    <span class="field-error">{{ form.au_email.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <!-- AU ID Card — file + camera -->
+            <div class="login-field">
+                <label>AU ID Card Photo</label>
+
+                <input type="file" id="idCardInput" name="id_card_photo"
+                       accept="image/*" style="display:none"
+                       onchange="previewFile(this)">
+
+                <div class="upload-btn-row">
+                    <button type="button" class="upload-btn" onclick="chooseFile()">
+                        📁 Choose File
+                    </button>
+                    <button type="button" class="upload-btn" onclick="takePhoto()">
+                        📷 Take Photo
+                    </button>
+                </div>
+
+                <div id="imagePreview" class="upload-preview" style="display:none;">
+                    <img id="imagePreviewImg" src="" alt="ID Preview"
+                         style="max-width:100%; border-radius:8px; margin-top:8px;">
+                    <span id="imagePreviewName" class="upload-filename"></span>
+                </div>
+
+                {% if form.id_card_photo.errors %}
+                    <span class="field-error">{{ form.id_card_photo.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+           
+
+            <!-- ✅ ONE submit button -->
+            <button type="submit" class="login-btn">✅ Submit Claim</button>
+
+        </form>
+        <!-- ✅ form closes here — only once -->
+
+        <p class="register-login-link">
+            <a href="{% url 'item_detail' item.id %}">⬅ Back to Item</a>
+        </p>
+
+    </div>
+
+    <!-- Camera Modal -->
+    <div id="cameraModal" style="
+        display:none; position:fixed; z-index:9999;
+        top:0; left:0; width:100%; height:100%;
+        background:rgba(0,0,0,0.92);
+        justify-content:center; align-items:center;
+        flex-direction:column; gap:16px;">
+
+        <video id="cameraVideo" style="
+            max-width:90%; max-height:60vh;
+            border-radius:12px; background:#000;">
+        </video>
+        <canvas id="cameraCanvas" style="display:none;"></canvas>
+
+        <div style="display:flex; gap:16px;">
+            <button onclick="capturePhoto()" style="
+                padding:12px 28px; background:#7B1C1C; color:white;
+                border:none; border-radius:10px; font-size:15px;
+                font-weight:700; cursor:pointer;">
+                📸 Capture
+            </button>
+            <button onclick="closeCamera()" style="
+                padding:12px 28px; background:#444; color:white;
+                border:none; border-radius:10px; font-size:15px;
+                font-weight:700; cursor:pointer;">
+                ✕ Cancel
+            </button>
+        </div>
+    </div>
+
+    <!-- Language Switcher -->
+    <div id="google_translate_element"></div>
+
+    <!-- ✅ ONE <script> block with ALL JS -->
+    <script>
+        // ---- FILE / CAMERA ----
+        function chooseFile() {
+            var input = document.getElementById("idCardInput");
+            input.removeAttribute("capture");
+            input.click();
+        }
+
+        function takePhoto() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert("Camera not supported. Please use Choose File.");
+                return;
+            }
+            document.getElementById("cameraModal").style.display = "flex";
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    var video = document.getElementById("cameraVideo");
+                    video.srcObject = stream;
+                    video.play();
+                    window._cameraStream = stream;
+                })
+                .catch(function(err) {
+                    alert("Could not access camera: " + err.message);
+                    document.getElementById("cameraModal").style.display = "none";
+                });
+        }
+
+        function capturePhoto() {
+            var video  = document.getElementById("cameraVideo");
+            var canvas = document.getElementById("cameraCanvas");
+            canvas.width  = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext("2d").drawImage(video, 0, 0);
+
+            if (window._cameraStream) {
+                window._cameraStream.getTracks().forEach(function(t) { t.stop(); });
+            }
+
+            canvas.toBlob(function(blob) {
+                var timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+                var file = new File([blob], "camera_" + timestamp + ".jpg", { type: "image/jpeg" });
+                var dt   = new DataTransfer();
+                dt.items.add(file);
+                document.getElementById("idCardInput").files = dt.files;
+
+                document.getElementById("imagePreviewImg").src          = canvas.toDataURL("image/jpeg");
+                document.getElementById("imagePreviewName").textContent = "camera_photo.jpg";
+                document.getElementById("imagePreview").style.display   = "flex";
+                document.getElementById("cameraModal").style.display    = "none";
+            }, "image/jpeg");
+        }
+
+        function closeCamera() {
+            if (window._cameraStream) {
+                window._cameraStream.getTracks().forEach(function(t) { t.stop(); });
+            }
+            document.getElementById("cameraModal").style.display = "none";
+        }
+
+        function previewFile(input) {
+            var file = input.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById("imagePreviewImg").src          = e.target.result;
+                document.getElementById("imagePreviewName").textContent = file.name;
+                document.getElementById("imagePreview").style.display   = "flex";
+            };
+            reader.readAsDataURL(file);
+        }
+
+        
+             
+
+        
+
+       
+
+        // ---- GOOGLE TRANSLATE INIT ----
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'en,hi,gu,mr,ta,te,kn,ml,pa,bn,or,as,ur,ne,si,kok,mai,mni,sat,doi,ks',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false,
+            }, 'google_translate_element');
+        }
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>

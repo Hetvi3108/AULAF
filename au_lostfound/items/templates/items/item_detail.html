@@ -1,0 +1,284 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Item Details - AULAF</title>
+    <link rel="stylesheet" href="{% static 'items/in.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        #google_translate_element {
+            position: fixed;
+            top: 12px;
+            right: 16px;
+            z-index: 99999;
+            background: #fff;
+            border-radius: 8px;
+            padding: 4px 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .goog-te-banner-frame,
+        #goog-gt-tt,
+        .goog-te-balloon-frame { display: none !important; }
+        body { top: 0 !important; }
+        .goog-te-gadget {
+            font-family: 'Montserrat', Arial, sans-serif !important;
+            font-size: 13px !important;
+            color: #7B1C1C !important;
+        }
+        .goog-te-gadget select {
+            border: 1px solid #c9a0a0;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 13px;
+            color: #7B1C1C;
+            font-family: 'Montserrat', Arial, sans-serif;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* Finder contact box */
+        .finder-contact-box {
+            background: #fff8e1;
+            border: 2px solid #f0c040;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-top: 16px;
+        }
+        .finder-contact-box h3 {
+            margin: 0 0 12px 0;
+            font-size: 15px;
+            color: #7B1C1C;
+            font-family: 'Montserrat', Arial, sans-serif;
+            text-align: left;
+        }
+        .finder-contact-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-family: 'Montserrat', Arial, sans-serif;
+            font-size: 14px;
+            color: #333;
+        }
+        .finder-contact-row span.label {
+            font-weight: 700;
+            min-width: 90px;
+            color: #555;
+        }
+        .finder-contact-row a {
+            color: #7B1C1C;
+            font-weight: 700;
+            word-break: break-all;
+        }
+        .finder-note {
+            font-size: 12px;
+            color: #888;
+            margin-top: 10px;
+            font-family: 'Montserrat', Arial, sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Item Details</h1>
+
+    <div class="item-card">
+
+        <h2>{{ item.item_name }}</h2>
+
+        {% if item.image %}
+            <img src="{{ item.image.url }}"
+                 alt="{{ item.item_name }}"
+                 class="item-img"
+                 onclick="openImage(this.src)">
+            <p class="zoom-hint">Click image to zoom</p>
+        {% endif %}
+
+        <<p><strong>Description:</strong> {{ item.description }}</p>
+
+        <!-- ✅ Audio file playback — shown only if audio was recorded -->
+        {% if item.audio_blob %}
+            <div style="margin-top: 10px;">
+                <strong style="font-family:'Montserrat',Arial,sans-serif; font-size:14px;">
+                    🎙️ Voice Recording:
+                </strong>
+                <audio controls style="display:block; width:100%; margin-top:6px; border-radius:8px;">
+                    <source src="{{ item.audio_blob.url }}" type="audio/webm">
+                    <source src="{{ item.audio_blob.url }}" type="audio/wav">
+                </audio>
+            </div>
+        {% endif %}
+
+        <!-- ✅ Translated transcript — shown only if it exists -->
+        {% if item.audio_transcript %}
+            <div style="
+                margin-top: 10px;
+                background: #f9f9f9;
+                border-left: 4px solid #7B1C1C;
+                border-radius: 6px;
+                padding: 10px 14px;
+                font-family: 'Montserrat', Arial, sans-serif;
+                font-size: 13px;
+                color: #333;">
+                <strong>📝 Voice Transcript (English):</strong>
+                <p style="margin: 6px 0 0 0;">{{ item.audio_transcript }}</p>
+            </div>
+        {% endif %}
+
+        <p><strong>Location:</strong> {{ item.get_submitted_at_display|default:"Not specified" }}</p>
+
+        <p><strong>Submission Type:</strong> {{ item.get_submission_type_display }}</p>
+
+        <p><strong>Reported By:</strong> {{ item.reported_by.username }}</p>
+
+        <p><strong>Date Reported:</strong> {{ item.date_reported|date:"Y-m-d H:i" }}</p>
+
+        <!-- ✅ Finder contact info — only when item is with finder and not yet collected -->
+        {% if item.submission_type == "finder" and item.status != "Collected" %}
+            <div class="finder-contact-box">
+                <h3>📍 Item is with the Finder — Contact to Collect</h3>
+
+                <div class="finder-contact-row">
+                    <span class="label">👤 Username</span>
+                    <span>{{ item.reported_by.username }}</span>
+                </div>
+
+                <div class="finder-contact-row">
+                    <span class="label">✉️ Email</span>
+                    <a href="mailto:{{ item.reported_by.email }}">
+                        {{ item.reported_by.email }}
+                    </a>
+                </div>
+
+                <p class="finder-note">
+                    ⚠️ Please contact the finder directly using the email above
+                    to arrange collection of your item.
+                </p>
+            </div>
+        {% endif %}
+
+        <!-- ✅ Claim button — only visible to reporter, only if not collected -->
+        {% if request.user == item.reported_by and item.status != "Collected" %}
+            <div style="margin-top: 8px;">
+                <a href="{% url 'claim_item' item.id %}" class="button-link">
+                    🎫 Process Claim
+                </a>
+            </div>
+        {% endif %}
+
+        <!-- ✅ View all claims — only visible to reporter -->
+        {% if request.user == item.reported_by %}
+            <div style="margin-top: 8px;">
+                <a href="{% url 'view_claims' item.id %}" class="button-link"
+                style="background: #003366;">
+                    📋 View Claims
+                </a>
+            </div>
+
+        {% endif %}
+
+        <!-- ADD these buttons inside item_detail.html -->
+        <!-- Place them right after the existing View Claims button -->
+
+        <!-- ✅ Edit Item — only visible to reporter -->
+        {% if request.user == item.reported_by %}
+            <div style="margin-top: 8px;">
+                <a href="{% url 'edit_item' item.id %}" class="button-link"
+                style="background: #1a3a6b;">
+                    ✏️ Edit Item
+                </a>
+            </div>
+        {% endif %}
+
+        <!-- ✅ Delete Item — only visible to reporter, with red button -->
+        {% if request.user == item.reported_by %}
+            <div style="margin-top: 8px;">
+                <a href="{% url 'delete_item' item.id %}" class="button-link"
+                style="background:  #1a3a6b;">
+                    🗑️ Delete Item
+                </a>
+            </div>
+        {% endif %}
+        {% if  item.status == "Collected" %}
+            <div style="margin-top: 8px;">
+                <a href="{% url 'submit_complaint' item.id %}" class="button-link" 
+                style="background:  #1a3a6b;">
+                    📢 File a Complaint
+                </a>
+            </div>
+        {% endif %}
+        
+
+    </div>
+
+    <div style="text-align:center;">
+        <a href="{% url 'home' %}" class="button-link">⬅ Back to Dashboard</a>
+    </div>
+
+    <!-- Image Zoom Modal -->
+    <div id="imageModal" style="
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.95);
+        justify-content: center;
+        align-items: center;
+        cursor: zoom-out;">
+
+        <span onclick="closeImage()" style="
+            position: absolute;
+            top: 20px; right: 35px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            line-height: 1;">&times;</span>
+
+        <img id="modalImg" src="" style="
+            max-width: 95%;
+            max-height: 95vh;
+            object-fit: contain;
+            border-radius: 10px;">
+    </div>
+
+    <!-- Language Switcher -->
+    <div id="google_translate_element"></div>
+
+    <script>
+        function openImage(src) {
+            var modal = document.getElementById("imageModal");
+            var modalImg = document.getElementById("modalImg");
+            modalImg.src = src;
+            modal.style.display = "flex";
+        }
+
+        function closeImage() {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "none";
+            document.getElementById("modalImg").src = "";
+        }
+
+        document.getElementById("imageModal").addEventListener("click", function(e) {
+            if (e.target === this) closeImage();
+        });
+
+        document.addEventListener("keydown", function(e) {
+            if (e.key === "Escape") closeImage();
+        });
+
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'en,hi,gu,mr,ta,te,kn,ml,pa,bn,or,as,ur,ne,si,kok,mai,mni,sat,doi,ks',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false,
+            }, 'google_translate_element');
+        }
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>

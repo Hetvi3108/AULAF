@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Complaint Submitted - AULAF</title>
+    <link rel="stylesheet" href="{% static 'items/in.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        .complaint-page {
+            min-height: 100vh;
+            background: #e8e0e0;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Montserrat', Arial, sans-serif;
+        }
+        .complaint-navbar {
+            background: #7B1C1C;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            padding: 0 28px;
+            gap: 12px;
+        }
+        .complaint-nav-logo {
+            width: 40px; height: 40px;
+            background: #5a1010;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        .complaint-nav-title {
+            color: #fff; font-size: 22px; font-weight: 700; letter-spacing: 2px;
+        }
+        .complaint-body {
+            flex: 1;
+            display: flex; align-items: center; justify-content: center;
+            padding: 40px 20px;
+        }
+        .success-card {
+            background: #7B1C1C;
+            border-radius: 20px;
+            padding: 48px 40px;
+            width: 100%;
+            max-width: 440px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+        }
+        .success-icon { font-size: 56px; margin-bottom: 16px; }
+        .success-title {
+            font-size: 24px; font-weight: 700; color: #fff;
+            margin: 0 0 8px;
+        }
+        .success-sub {
+            font-size: 14px; color: #f0d0d0; margin: 0 0 28px; line-height: 1.6;
+        }
+        .success-btn {
+            display: block; padding: 14px;
+            background: #0a091a; color: #fff;
+            border: none; border-radius: 10px;
+            font-size: 15px; font-weight: 700;
+            font-family: 'Montserrat', Arial, sans-serif;
+            text-decoration: none; cursor: pointer;
+            transition: background 0.2s;
+        }
+        .success-btn:hover { background: #1a1a3a; color: #fff; }
+    </style>
+</head>
+<body>
+<div class="complaint-page">
+    <nav class="complaint-navbar">
+        <div class="complaint-nav-logo">
+            <img src="{% static 'items/au_logo.jpeg' %}" alt="AU"
+                 style="width:36px;height:36px;object-fit:contain;"
+                 onerror="this.style.display='none'">
+        </div>
+        <span class="complaint-nav-title">AULAF</span>
+    </nav>
+    <div class="complaint-body">
+        <div class="success-card">
+            <div class="success-icon">✅</div>
+            <h2 class="success-title">Complaint Submitted!</h2>
+            <p class="success-sub">
+                A confirmation has been sent to your email.<br>
+                Our team will review it and respond shortly.
+            </p>
+            <a href="{% url 'home' %}" class="success-btn">⬅ Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

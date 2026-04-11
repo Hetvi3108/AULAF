@@ -1,0 +1,261 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Claims - AULAF</title>
+    <link rel="stylesheet" href="{% static 'items/in.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+  
+        #google_translate_element {
+            position: fixed;
+            top: 12px;
+            right: 16px;
+            z-index: 99999;
+            background: #fff;
+            border-radius: 8px;
+            padding: 4px 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        /* Hide Google's branding bar at top of page */
+        .goog-te-banner-frame,
+        #goog-gt-tt,
+        .goog-te-balloon-frame {
+            display: none !important;
+        }
+        
+        body {
+            top: 0 !important;  /* prevent Google pushing page down */
+        }
+        
+        .goog-te-gadget {
+            font-family: 'Montserrat', Arial, sans-serif !important;
+            font-size: 13px !important;
+            color: #7B1C1C !important;
+        }
+        
+        .goog-te-gadget select {
+            border: 1px solid #c9a0a0;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 13px;
+            color: #7B1C1C;
+            font-family: 'Montserrat', Arial, sans-serif;
+            outline: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body class="login-body" style="align-items: flex-start; padding: 40px 20px;">
+
+    <div style="width: 100%; max-width: 680px; margin: 0 auto;">
+
+        <!-- Header -->
+        <div style="background: #7B1C1C; border-radius: 16px; padding: 24px 32px; margin-bottom: 24px; text-align: center;">
+            <h2 style="color: #fff; font-family: 'Montserrat', Arial, sans-serif;
+                        font-size: 24px; font-weight: 700; letter-spacing: 2px; margin: 0 0 6px 0;">
+                Claims for
+            </h2>
+            <p style="color: #f0d0d0; font-size: 16px; font-weight: 600; margin: 0;">
+                {{ item.item_name }}
+            </p>
+        </div>
+
+        <!-- No claims -->
+        {% if not claims %}
+            <div style="background: #ece4e4; border-radius: 12px; padding: 32px;
+                        text-align: center; color: #888; font-family: 'Montserrat', Arial, sans-serif;">
+                No claims have been submitted for this item yet.
+            </div>
+
+        {% else %}
+            <!-- Claim count -->
+            <p style="font-family: 'Montserrat', Arial, sans-serif; font-size: 13px;
+                       color: #555; font-weight: 600; margin-bottom: 16px;">
+                {{ claims|length }} claim{{ claims|length|pluralize }} submitted
+            </p>
+
+            {% for claim in claims %}
+            <div style="background: #ece4e4; border-radius: 14px; padding: 24px 28px;
+                         margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+
+                <!-- Claim number + date -->
+                <div style="display: flex; justify-content: space-between; align-items: center;
+                             margin-bottom: 18px; flex-wrap: wrap; gap: 8px;">
+                    <span style="font-family: 'Montserrat', Arial, sans-serif;
+                                  font-size: 15px; font-weight: 700; color: #7B1C1C;">
+                        Claim #{{ forloop.counter }}
+                    </span>
+                    <span style="font-size: 12px; color: #888; font-family: 'Montserrat', Arial, sans-serif;">
+                        📅 {{ claim.claimed_at|date:"Y-m-d H:i" }}
+                    </span>
+                </div>
+
+                <!-- Fields -->
+                <div style="display: flex; flex-direction: column; gap: 12px;
+                             font-family: 'Montserrat', Arial, sans-serif;">
+
+                    <!-- Claimer Name -->
+                    <div style="display: flex; justify-content: space-between;
+                                 border-bottom: 1px solid #d9cccc; padding-bottom: 10px;">
+                        <span style="font-size: 13px; color: #555; font-weight: 600;">
+                            👤 Claimer Name
+                        </span>
+                        <span style="font-size: 13px; color: #222; font-weight: 700;">
+                            {{ claim.claimer_name }}
+                        </span>
+                    </div>
+
+                    <!-- Enrollment Number -->
+                    <div style="display: flex; justify-content: space-between;
+                                 border-bottom: 1px solid #d9cccc; padding-bottom: 10px;">
+                        <span style="font-size: 13px; color: #555; font-weight: 600;">
+                            🎓 Enrollment No
+                        </span>
+                        <span style="font-size: 13px; color: #222; font-weight: 700;">
+                            {{ claim.enrollment_no }}
+                        </span>
+                    </div>
+
+                    <!-- AU Email -->
+                    <div style="display: flex; justify-content: space-between;
+                                 border-bottom: 1px solid #d9cccc; padding-bottom: 10px;">
+                        <span style="font-size: 13px; color: #555; font-weight: 600;">
+                            ✉️ AU Email
+                        </span>
+                        <span style="font-size: 13px; color: #222; font-weight: 700;">
+                            {{ claim.au_email }}
+                        </span>
+                    </div>
+
+                    <!-- Filled By -->
+                    <div style="display: flex; justify-content: space-between;
+                                 border-bottom: 1px solid #d9cccc; padding-bottom: 10px;">
+                        <span style="font-size: 13px; color: #555; font-weight: 600;">
+                            🖊️ Form Filled By
+                        </span>
+                        <span style="font-size: 13px; color: #222; font-weight: 700;">
+                            {{ claim.filled_by.username }}
+                        </span>
+                    </div>
+
+                    <!-- ID Card Photo -->
+                    <div>
+                        <span style="font-size: 13px; color: #555; font-weight: 600;
+                                      display: block; margin-bottom: 10px;">
+                            🪪 AU ID Card Photo
+                        </span>
+                        {% if claim.id_card_photo %}
+                            <img src="{{ claim.id_card_photo.url }}"
+                                 alt="ID Card"
+                                 onclick="openImage(this.src)"
+                                 style="width: 100%; max-width: 320px; border-radius: 10px;
+                                         cursor: zoom-in; border: 2px solid #c9a0a0;
+                                         display: block;">
+                            <p style="font-size: 11px; color: #aaa; margin-top: 4px;">
+                                Click to zoom
+                            </p>
+                        {% else %}
+                            <span style="font-size: 13px; color: #aaa;">No photo uploaded</span>
+                        {% endif %}
+                        
+                    </div>
+ 
+
+
+                    {% if request.user == claim.filled_by %}
+                    <div style="display:flex; gap:10px; margin-top:16px;">
+                        <a href="{% url 'edit_claim' claim.id %}"
+                        style="flex:1; text-align:center; padding:10px;
+                                background:#1a3a6b; color:#fff; border-radius:8px;
+                                font-family:'Montserrat',Arial,sans-serif;
+                                font-size:13px; font-weight:700; text-decoration:none;">
+                            ✏️ Edit Claim
+                        </a>
+                        <a href="{% url 'delete_claim' claim.id %}"
+                        style="flex:1; text-align:center; padding:10px;
+                                background:darkred; color:#fff; border-radius:8px;
+                                font-family:'Montserrat',Arial,sans-serif;
+                                font-size:13px; font-weight:700; text-decoration:none;">
+                            🗑️ Delete Claim
+                        </a>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+            {% endfor %}
+
+        {% endif %}
+
+        <!-- Back button -->
+        <div style="text-align: center; margin-top: 10px;">
+            <a href="{% url 'item_detail' item.id %}" class="button-link">
+                ⬅ Back to Item
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Image Zoom Modal -->
+    <div id="imageModal" style="
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.95);
+        justify-content: center;
+        align-items: center;
+        cursor: zoom-out;">
+
+        <span onclick="closeImage()" style="
+            position: absolute;
+            top: 20px; right: 35px;
+            color: white; font-size: 40px;
+            cursor: pointer; line-height: 1;">
+            &times;
+        </span>
+
+        <img id="modalImg" src="" style="
+            max-width: 95%;
+            max-height: 95vh;
+            object-fit: contain;
+            border-radius: 10px;">
+    </div>
+
+    <script>
+        function openImage(src) {
+            document.getElementById("modalImg").src        = src;
+            document.getElementById("imageModal").style.display = "flex";
+        }
+        function closeImage() {
+            document.getElementById("imageModal").style.display = "none";
+            document.getElementById("modalImg").src = "";
+        }
+        document.getElementById("imageModal").addEventListener("click", function(e) {
+            if (e.target === this) closeImage();
+        });
+        document.addEventListener("keydown", function(e) {
+            if (e.key === "Escape") closeImage();
+        });
+    </script>
+    <div id="google_translate_element"></div>
+ 
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'en',
+      includedLanguages: 'en,hi,gu,mr,ta,te,kn,ml,pa,bn,or,as,ur,ne,si,kok,mai,mni,sat,doi,ks',
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+      autoDisplay: false,
+    }, 'google_translate_element');
+  }
+</script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>

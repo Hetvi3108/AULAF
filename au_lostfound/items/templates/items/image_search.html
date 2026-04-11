@@ -1,0 +1,161 @@
+image_search: {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image Search - AULAF</title>
+    <link rel="stylesheet" href="{% static 'items/in.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        .search-page-wrapper {
+            min-height: 100vh;
+            background: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Montserrat', sans-serif;
+            padding: 40px 20px;
+        }
+        .search-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 560px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+        }
+        .search-card h2 { color: #7b1c1c; font-weight: 700; margin-bottom: 6px; }
+        .search-card p { color: #888; font-size: 14px; margin-bottom: 24px; }
+        .search-upload-area {
+            border: 2px dashed #c0392b;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            background: #fff5f5;
+            cursor: pointer;
+        }
+        .search-upload-area input[type="file"] { display: none; }
+        .search-upload-area label { cursor: pointer; color: #7b1c1c; font-weight: 600; font-size: 15px; }
+        .search-upload-area .upload-icon { font-size: 40px; display: block; margin-bottom: 10px; }
+        .file-name-display { margin-top: 8px; font-size: 13px; color: #555; }
+        #imagePreview {
+            width: 100%; max-height: 200px; object-fit: cover;
+            border-radius: 10px; margin-top: 12px; display: none;
+        }
+        .search-submit-btn {
+            width: 100%; background: #7b1c1c; color: #fff;
+            border: none; border-radius: 10px; padding: 13px;
+            font-size: 15px; font-weight: 700;
+            font-family: 'Montserrat', sans-serif;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .search-submit-btn:hover { background: #5a1010; }
+        .back-link {
+            display: block; text-align: center; margin-top: 16px;
+            color: #7b1c1c; font-size: 13px; text-decoration: none; font-weight: 600;
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px; margin-top: 24px;
+            width: 100%; max-width: 900px;
+        }
+        .result-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden; }
+        .result-card img { width: 100%; height: 160px; object-fit: cover; }
+        .result-card-body { padding: 14px; }
+        .result-card-body h5 { font-size: 15px; font-weight: 700; color: #222; margin-bottom: 4px; }
+        .result-card-body p { font-size: 12px; color: #888; margin-bottom: 10px; }
+        .result-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+        .badge-collected { background: #e6f9f0; color: #27ae60; }
+        .badge-not { background: #fdecea; color: #c0392b; }
+        .view-btn {
+            display: block; margin-top: 10px; background: #7b1c1c; color: #fff;
+            text-align: center; border-radius: 8px; padding: 7px;
+            font-size: 13px; font-weight: 600; text-decoration: none;
+        }
+        .no-results {
+            background: #fff8e1; border-radius: 10px; padding: 18px 24px;
+            color: #7b6000; font-weight: 600; margin-top: 20px;
+            max-width: 560px; width: 100%;
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+
+    <nav class="dash-navbar">
+        <div class="dash-nav-left">
+            <span class="dash-nav-title">AULAF</span>
+        </div>
+        <div class="dash-nav-right">
+            <a href="{% url 'home' %}" class="dash-report-btn">← Back to Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="search-page-wrapper">
+        <div class="search-card">
+            <h2>🔍 Search by Image</h2>
+            <p>Upload a photo of the lost item and we'll find similar items in the system.</p>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="search-upload-area" onclick="document.getElementById('imageInput').click()">
+                    <span class="upload-icon">🖼️</span>
+                    <label for="imageInput">Click to upload an image</label>
+                    <input type="file" name="query_image" id="imageInput" accept="image/*"
+                           onchange="previewImage(this)">
+                    <div class="file-name-display" id="imageFileName">No file chosen</div>
+                    <img id="imagePreview" src="" alt="Preview">
+                </div>
+                <button type="submit" class="search-submit-btn">🔍 Search</button>
+            </form>
+
+            <a href="{% url 'home' %}" class="back-link">← Back to Dashboard</a>
+        </div>
+
+        {% if results %}
+        <h4 style="margin-top:24px;font-family:Montserrat;color:#7b1c1c;">
+            {{ results|length }} Matching Item{{ results|length|pluralize }} Found
+        </h4>
+        <div class="results-grid">
+            {% for item in results %}
+            <div class="result-card">
+                {% if item.image %}
+                    <img src="{{ item.image.url }}" alt="{{ item.item_name }}">
+                {% endif %}
+                <div class="result-card-body">
+                    <h5>{{ item.item_name }}</h5>
+                    <p>{{ item.description|default:"No description"|truncatechars:60 }}</p>
+                    <span class="result-badge {% if item.status == 'Collected' %}badge-collected{% else %}badge-not{% endif %}">
+                        {{ item.status }}
+                    </span>
+                    <a href="{% url 'item_detail' item.id %}" class="view-btn">View Details</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% elif request.method == "POST" %}
+        <div class="no-results">
+            ⚠️ No matching items found. Try a clearer or different image.
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function previewImage(input) {
+            const preview = document.getElementById('imagePreview');
+            const fileName = document.getElementById('imageFileName');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+                fileName.textContent = input.files[0].name;
+            }
+        }
+    </script>
+</body>
+</html>
